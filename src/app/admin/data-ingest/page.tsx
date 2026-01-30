@@ -1,17 +1,32 @@
 import Link from "next/link";
 
-export default function AdminPage() {
+export default function DataIngestPage() {
   return (
     <div className="min-h-screen bg-black">
       {/* Header */}
       <header className="border-b border-gray-800 px-8 py-6">
-        <h1 className="text-white text-xl font-bold">Admin</h1>
-        <p className="text-gray-400 text-sm mt-1">Internal Admin Dashboard</p>
+        <Link href="/admin" className="flex items-center gap-2 text-white hover:text-gray-300 transition-colors">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m12 19-7-7 7-7" />
+            <path d="M19 12H5" />
+          </svg>
+          <span className="font-semibold">Data Ingest</span>
+        </Link>
       </header>
 
       {/* Content */}
       <main className="p-8">
-        <Link href="/admin/data-ingest">
+        <Link href="/enrichment">
           <div className="max-w-md rounded-xl border border-gray-800 bg-gray-900/50 p-6 cursor-pointer hover:border-gray-700 transition-colors">
             <div className="flex items-start justify-between mb-6">
               <div className="p-3 rounded-lg bg-gray-800">
@@ -27,9 +42,9 @@ export default function AdminPage() {
                   strokeLinejoin="round"
                   className="text-gray-400"
                 >
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" x2="12" y1="3" y2="15" />
+                  <path d="M12 3v12" />
+                  <path d="m8 11 4 4 4-4" />
+                  <path d="M8 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-4" />
                 </svg>
               </div>
               <svg
@@ -48,9 +63,9 @@ export default function AdminPage() {
                 <path d="m12 5 7 7-7 7" />
               </svg>
             </div>
-            <h2 className="text-white font-semibold text-lg">Data Ingest</h2>
+            <h2 className="text-white font-semibold text-lg">Find Similar Companies</h2>
             <p className="text-gray-400 text-sm mt-2">
-              Upload and process data for enrichment workflows
+              Upload domains and find lookalike companies that match your best customers
             </p>
           </div>
         </Link>
