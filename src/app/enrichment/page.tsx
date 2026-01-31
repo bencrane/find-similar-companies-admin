@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Papa from "papaparse";
 
 interface BatchStatus {
   status: "pending" | "processing" | "completed" | "completed_with_errors" | "error";
@@ -14,11 +13,10 @@ interface BatchStatus {
 }
 
 export default function EnrichmentPage() {
-  const [sourceType, setSourceType] = useState<"pending" | "csv">("pending");
   const [pendingCount, setPendingCount] = useState<number | null>(null);
-  const [domains, setDomains] = useState<string[]>([]);
-  const [selectedDomains, setSelectedDomains] = useState<Set<string>>(new Set());
   const [batchSize, setBatchSize] = useState(200);
+  const [similarityWeight, setSimilarityWeight] = useState(0.5);
+  const [countryCode, setCountryCode] = useState("");
   const [batchId, setBatchId] = useState<string | null>(null);
   const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
   const [isPolling, setIsPolling] = useState(false);
@@ -49,11 +47,9 @@ export default function EnrichmentPage() {
         const url = `${apiUrl}/api/enrichment/similar-companies/pending?limit=1`;
         console.log("Fetching count from:", url);
         const res = await fetch(url);
-        console.log("Count response status:", res.status);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         console.log("Count API response:", data);
-        console.log("Setting pendingCount to:", data.total);
         setPendingCount(data.total ?? 0);
       } catch (err) {
         console.error("Failed to fetch pending count:", err);
@@ -63,98 +59,42 @@ export default function EnrichmentPage() {
     fetchPendingCount();
   }, [apiUrl]);
 
-  const loadPendingDomains = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const url = `${apiUrl}/api/enrichment/similar-companies/pending?limit=500`;
-      console.log("Loading domains from:", url);
-      const res = await fetch(url);
-      console.log("Load response status:", res.status);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      console.log("Load API response:", data);
-      console.log("pending_domains array length:", data.pending_domains?.length);
-      const loadedDomains: string[] = data.pending_domains || [];
-      console.log("Setting domains state to:", loadedDomains.length, "domains");
-      setDomains(loadedDomains);
-      setSelectedDomains(new Set(loadedDomains));
-      setPendingCount(data.total ?? loadedDomains.length);
-    } catch (err) {
-      setError(`Failed to load pending domains: ${err}`);
-      console.error("Load error:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setError(null);
-    Papa.parse<Record<string, string>>(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const parsedDomains = results.data
-          .map((row) => row.domain || row.Domain)
-          .filter((domain): domain is string => !!domain)
-          .map((domain) => domain.trim().toLowerCase());
-
-        // Deduplicate
-        const uniqueDomains = [...new Set(parsedDomains)];
-        setDomains(uniqueDomains);
-        setSelectedDomains(new Set(uniqueDomains));
-      },
-      error: (err) => {
-        setError("Failed to parse CSV");
-        console.error(err);
-      },
-    });
-  }, []);
-
-  const toggleDomain = (domain: string) => {
-    setSelectedDomains((prev) => {
-      const next = new Set(prev);
-      if (next.has(domain)) {
-        next.delete(domain);
-      } else {
-        next.add(domain);
-      }
-      return next;
-    });
-  };
-
-  const selectAll = () => setSelectedDomains(new Set(domains));
-  const clearAll = () => setSelectedDomains(new Set());
-
   const submitBatch = async () => {
-    if (selectedDomains.size === 0) return;
-
     setIsLoading(true);
     setError(null);
     setBatchStatus(null);
 
     try {
+      const body: Record<string, unknown> = {
+        batch_size: batchSize,
+        similarity_weight: similarityWeight,
+      };
+
+      // Only include country_code if provided
+      if (countryCode.trim()) {
+        body.country_code = countryCode.trim().toUpperCase();
+      } else {
+        body.country_code = null;
+      }
+
+      console.log("Submitting batch:", body);
+
       const res = await fetch(`${apiUrl}/api/enrichment/similar-companies/batch`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          domains: Array.from(selectedDomains),
-          batch_size: batchSize,
-        }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
+      console.log("Batch response:", data);
 
       if (data.batch_id) {
         setBatchId(data.batch_id);
         startPolling(data.batch_id);
       } else {
-        setError("Failed to start batch");
+        setError(data.error || "Failed to start batch");
       }
     } catch (err) {
-      setError("Failed to submit batch");
+      setError(`Failed to submit batch: ${err}`);
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -176,17 +116,26 @@ export default function EnrichmentPage() {
             clearInterval(pollingRef.current);
             pollingRef.current = null;
           }
+          // Refresh pending count
+          refreshPendingCount();
         }
       } catch (err) {
         console.error("Polling error:", err);
       }
     };
 
-    // Initial poll
     poll();
-
-    // Poll every 3 seconds
     pollingRef.current = setInterval(poll, 3000);
+  };
+
+  const refreshPendingCount = async () => {
+    try {
+      const res = await fetch(`${apiUrl}/api/enrichment/similar-companies/pending?limit=1`);
+      const data = await res.json();
+      setPendingCount(data.total ?? 0);
+    } catch (err) {
+      console.error("Failed to refresh count:", err);
+    }
   };
 
   const isCompleted = batchStatus?.status === "completed" || batchStatus?.status === "completed_with_errors";
@@ -205,114 +154,83 @@ export default function EnrichmentPage() {
       </header>
 
       {/* Content */}
-      <main className="p-8 max-w-4xl">
+      <main className="p-8 max-w-2xl">
         {error && (
           <div className="mb-6 p-4 bg-red-900/50 border border-red-700 rounded-lg text-red-200">
             {error}
           </div>
         )}
 
-        {/* Queue Status */}
+        {/* Batch Settings */}
         <section className="mb-8 p-6 rounded-xl border border-gray-800 bg-gray-900/50">
-          <h2 className="text-white font-semibold mb-4">Queue Status</h2>
+          <h2 className="text-white font-semibold mb-2">Batch Settings</h2>
+          <p className="text-gray-400 text-sm mb-6">
+            {pendingCount !== null ? (
+              <>{pendingCount} domains pending enrichment</>
+            ) : (
+              <>Loading pending count...</>
+            )}
+          </p>
 
-          <div className="space-y-3">
-            <label className="flex items-center gap-3 cursor-pointer">
+          <div className="space-y-4">
+            {/* Batch Size */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Batch Size</label>
               <input
-                type="radio"
-                name="source"
-                checked={sourceType === "pending"}
-                onChange={() => setSourceType("pending")}
-                className="w-4 h-4 accent-white"
+                type="number"
+                value={batchSize}
+                onChange={(e) => setBatchSize(Number(e.target.value))}
+                min={1}
+                max={500}
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white"
               />
-              <span className="text-white">
-                Load Pending Domains {pendingCount !== null && `(${pendingCount} available)`}
-              </span>
-              <button
-                onClick={loadPendingDomains}
-                disabled={sourceType !== "pending" || isLoading}
-                className="ml-auto px-4 py-1.5 bg-white text-black text-sm rounded font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? "Loading..." : "Load"}
-              </button>
-            </label>
-
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="radio"
-                name="source"
-                checked={sourceType === "csv"}
-                onChange={() => setSourceType("csv")}
-                className="w-4 h-4 accent-white"
-              />
-              <span className="text-white">Upload CSV</span>
-              <input
-                type="file"
-                accept=".csv"
-                onChange={handleFileUpload}
-                disabled={sourceType !== "csv"}
-                className="ml-auto text-sm text-gray-400 file:mr-3 file:py-1.5 file:px-4 file:rounded file:border-0 file:bg-white file:text-black file:text-sm file:font-medium file:cursor-pointer disabled:opacity-50"
-              />
-            </label>
-          </div>
-        </section>
-
-        {/* Domains to Process */}
-        {domains.length > 0 && (
-          <section className="mb-8 p-6 rounded-xl border border-gray-800 bg-gray-900/50">
-            <h2 className="text-white font-semibold mb-4">Domains to Process</h2>
-
-            <div className="max-h-64 overflow-y-auto mb-4 space-y-1">
-              {domains.map((domain) => (
-                <label key={domain} className="flex items-center gap-3 py-1.5 px-2 rounded hover:bg-gray-800 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedDomains.has(domain)}
-                    onChange={() => toggleDomain(domain)}
-                    className="w-4 h-4 accent-white"
-                  />
-                  <span className="text-gray-300">{domain}</span>
-                </label>
-              ))}
+              <p className="text-xs text-gray-500 mt-1">Number of domains to process (max 500)</p>
             </div>
 
-            <div className="flex items-center gap-4 mb-6">
-              <button onClick={selectAll} className="text-sm text-gray-400 hover:text-white">
-                Select All
-              </button>
-              <button onClick={clearAll} className="text-sm text-gray-400 hover:text-white">
-                Clear All
-              </button>
-              <span className="text-sm text-gray-500 ml-auto">
-                Selected: {selectedDomains.size} of {domains.length}
-              </span>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 text-white text-sm">
-                Batch Size:
-                <select
-                  value={batchSize}
-                  onChange={(e) => setBatchSize(Number(e.target.value))}
-                  className="bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-white"
-                >
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                  <option value={200}>200</option>
-                  <option value={500}>500</option>
-                </select>
+            {/* Similarity Weight */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">
+                Similarity Weight: {similarityWeight.toFixed(1)}
               </label>
-
-              <button
-                onClick={submitBatch}
-                disabled={selectedDomains.size === 0 || isLoading || isPolling}
-                className="ml-auto px-6 py-2 bg-white text-black rounded font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Submit Batch
-              </button>
+              <input
+                type="range"
+                value={similarityWeight}
+                onChange={(e) => setSimilarityWeight(Number(e.target.value))}
+                min={-1}
+                max={1}
+                step={0.1}
+                className="w-full accent-white"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>-1.0 (Diverse)</span>
+                <span>0.0 (Balanced)</span>
+                <span>1.0 (Similar)</span>
+              </div>
             </div>
-          </section>
-        )}
+
+            {/* Country Code */}
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">Country Code (optional)</label>
+              <input
+                type="text"
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                placeholder="e.g., US"
+                maxLength={2}
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white placeholder-gray-500"
+              />
+              <p className="text-xs text-gray-500 mt-1">Leave empty for all countries</p>
+            </div>
+          </div>
+
+          <button
+            onClick={submitBatch}
+            disabled={isLoading || isPolling || pendingCount === 0}
+            className="mt-6 w-full px-6 py-3 bg-white text-black rounded font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Starting..." : isPolling ? "Processing..." : "Start Batch"}
+          </button>
+        </section>
 
         {/* Active Batch */}
         {batchId && batchStatus && !isCompleted && (
@@ -362,6 +280,16 @@ export default function EnrichmentPage() {
                 </p>
               )}
             </div>
+
+            <button
+              onClick={() => {
+                setBatchId(null);
+                setBatchStatus(null);
+              }}
+              className="mt-4 text-sm text-gray-400 hover:text-white"
+            >
+              Start New Batch
+            </button>
           </section>
         )}
       </main>
