@@ -46,11 +46,15 @@ export default function EnrichmentPage() {
         return;
       }
       try {
-        const res = await fetch(`${apiUrl}/api/enrichment/similar-companies/pending?limit=1`);
+        const url = `${apiUrl}/api/enrichment/similar-companies/pending?limit=1`;
+        console.log("Fetching count from:", url);
+        const res = await fetch(url);
+        console.log("Count response status:", res.status);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
-        console.log("Pending count response:", data);
-        setPendingCount(data.total || 0);
+        console.log("Count API response:", data);
+        console.log("Setting pendingCount to:", data.total);
+        setPendingCount(data.total ?? 0);
       } catch (err) {
         console.error("Failed to fetch pending count:", err);
         setPendingCount(null);
@@ -63,18 +67,22 @@ export default function EnrichmentPage() {
     setIsLoading(true);
     setError(null);
     try {
-      console.log("Fetching from:", `${apiUrl}/api/enrichment/similar-companies/pending?limit=500`);
-      const res = await fetch(`${apiUrl}/api/enrichment/similar-companies/pending?limit=500`);
+      const url = `${apiUrl}/api/enrichment/similar-companies/pending?limit=500`;
+      console.log("Loading domains from:", url);
+      const res = await fetch(url);
+      console.log("Load response status:", res.status);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      console.log("Load response:", data);
-      const loadedDomains = data.pending_domains || [];
+      console.log("Load API response:", data);
+      console.log("pending_domains array length:", data.pending_domains?.length);
+      const loadedDomains: string[] = data.pending_domains || [];
+      console.log("Setting domains state to:", loadedDomains.length, "domains");
       setDomains(loadedDomains);
       setSelectedDomains(new Set(loadedDomains));
-      setPendingCount(data.total || loadedDomains.length);
+      setPendingCount(data.total ?? loadedDomains.length);
     } catch (err) {
       setError(`Failed to load pending domains: ${err}`);
-      console.error(err);
+      console.error("Load error:", err);
     } finally {
       setIsLoading(false);
     }
