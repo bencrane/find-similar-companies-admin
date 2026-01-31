@@ -40,12 +40,20 @@ export default function EnrichmentPage() {
   // Load pending domains count on mount
   useEffect(() => {
     const fetchPendingCount = async () => {
+      if (!apiUrl) {
+        console.error("NEXT_PUBLIC_API_URL is not set");
+        setError("API URL not configured");
+        return;
+      }
       try {
         const res = await fetch(`${apiUrl}/api/enrichment/similar-companies/pending?limit=1`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
+        console.log("Pending count response:", data);
         setPendingCount(data.total || 0);
-      } catch {
-        setPendingCount(0);
+      } catch (err) {
+        console.error("Failed to fetch pending count:", err);
+        setPendingCount(null);
       }
     };
     fetchPendingCount();
@@ -55,13 +63,17 @@ export default function EnrichmentPage() {
     setIsLoading(true);
     setError(null);
     try {
+      console.log("Fetching from:", `${apiUrl}/api/enrichment/similar-companies/pending?limit=500`);
       const res = await fetch(`${apiUrl}/api/enrichment/similar-companies/pending?limit=500`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      console.log("Load response:", data);
       const loadedDomains = data.pending_domains || [];
       setDomains(loadedDomains);
       setSelectedDomains(new Set(loadedDomains));
+      setPendingCount(data.total || loadedDomains.length);
     } catch (err) {
-      setError("Failed to load pending domains");
+      setError(`Failed to load pending domains: ${err}`);
       console.error(err);
     } finally {
       setIsLoading(false);
