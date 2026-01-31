@@ -43,7 +43,7 @@ export default function EnrichmentPage() {
       try {
         const res = await fetch(`${apiUrl}/api/enrichment/similar-companies/pending?limit=1`);
         const data = await res.json();
-        setPendingCount(data.total_pending || 0);
+        setPendingCount(data.total || 0);
       } catch {
         setPendingCount(0);
       }
@@ -57,7 +57,7 @@ export default function EnrichmentPage() {
     try {
       const res = await fetch(`${apiUrl}/api/enrichment/similar-companies/pending?limit=500`);
       const data = await res.json();
-      const loadedDomains = data.domains || [];
+      const loadedDomains = data.pending_domains || [];
       setDomains(loadedDomains);
       setSelectedDomains(new Set(loadedDomains));
     } catch (err) {
