@@ -1,0 +1,70 @@
+[
+  {
+    "schema": "auth",
+    "tables": ["audit_log_entries", "flow_state", "identities", "instances", "mfa_amr_claims", "mfa_challenges", "mfa_factors", "oauth_authorizations", "oauth_client_states", "oauth_clients", "oauth_consents", "one_time_tokens", "refresh_tokens", "saml_providers", "saml_relay_states", "schema_migrations", "sessions", "sso_domains", "sso_providers", "users"]
+  },
+  {
+    "schema": "core",
+    "tables": ["case_study_champions", "companies", "companies_missing_cleaned_name", "companies_missing_location", "company_customers", "company_descriptions", "company_descriptions_staging", "company_employee_range", "company_employee_ranges", "company_funding", "company_industries", "company_linkedin_urls", "company_locations", "company_names", "company_people_snapshot_history", "company_public", "company_revenue", "company_revenue_staging", "company_types", "company_vc_backed", "company_vc_investments", "company_vc_investors", "icp_criteria", "missing_people", "people", "people_missing_country", "person_job_start_dates", "person_job_titles", "person_locations", "person_past_employer", "person_promotions", "person_tenure", "person_work_history", "persons_missing_cleaned_title", "target_client_views"]
+  },
+  {
+    "schema": "derived",
+    "tables": ["company_icp_industries_from_customers", "icp_job_titles_from_champions"]
+  },
+  {
+    "schema": "extracted",
+    "tables": ["apollo_companies_cleaned", "apollo_instantdata_companies", "apollo_instantdata_people", "apollo_people_cleaned", "apollo_scrape", "case_study_buyers", "case_study_champions", "case_study_details", "cb_vc_portfolio", "clay_job_change", "clay_job_function_mapping", "clay_job_posting", "clay_new_hire", "clay_news_fundraising", "clay_promotion", "clay_seniority_mapping", "claygent_customers", "claygent_customers_structured", "claygent_customers_v2", "cleaned_company_names", "company_customer_claygent", "company_discovery", "company_discovery_location_parsed", "company_enrich_similar", "company_firmographics", "company_vc_investors", "crunchbase_domain_inference", "email_anymailfinder", "email_leadmagic", "icp_fit_criterion", "icp_industries", "icp_job_titles", "icp_value_proposition", "icp_verdict", "instant_data_scraper", "leadmagic_company_enrichment", "nostra_ecom_companies", "nostra_ecom_people", "person_discovery", "person_discovery_location_parsed", "person_education", "person_experience", "person_profile", "person_title_enrichment", "salesnav_scrapes_companies", "salesnav_scrapes_person", "signal_job_change", "signal_job_posting", "signal_promotion", "vc_portfolio"]
+  },
+  {
+    "schema": "information_schema",
+    "tables": ["sql_features", "sql_implementation_info", "sql_parts", "sql_sizing"]
+  },
+  {
+    "schema": "manual",
+    "tables": ["company_customers"]
+  },
+  {
+    "schema": "mapped",
+    "tables": ["case_study_champions", "company_discovery", "person_discovery"]
+  },
+  {
+    "schema": "pg_catalog",
+    "tables": ["pg_aggregate", "pg_am", "pg_amop", "pg_amproc", "pg_attrdef", "pg_attribute", "pg_auth_members", "pg_authid", "pg_cast", "pg_class", "pg_collation", "pg_constraint", "pg_conversion", "pg_database", "pg_db_role_setting", "pg_default_acl", "pg_depend", "pg_description", "pg_enum", "pg_event_trigger", "pg_extension", "pg_foreign_data_wrapper", "pg_foreign_server", "pg_foreign_table", "pg_index", "pg_inherits", "pg_init_privs", "pg_language", "pg_largeobject", "pg_largeobject_metadata", "pg_namespace", "pg_opclass", "pg_operator", "pg_opfamily", "pg_parameter_acl", "pg_partitioned_table", "pg_policy", "pg_proc", "pg_publication", "pg_publication_namespace", "pg_publication_rel", "pg_range", "pg_replication_origin", "pg_rewrite", "pg_seclabel", "pg_sequence", "pg_shdepend", "pg_shdescription", "pg_shseclabel", "pg_statistic", "pg_statistic_ext", "pg_statistic_ext_data", "pg_subscription", "pg_subscription_rel", "pg_tablespace", "pg_transform", "pg_trigger", "pg_ts_config", "pg_ts_config_map", "pg_ts_dict", "pg_ts_parser", "pg_ts_template", "pg_type", "pg_user_mapping"]
+  },
+  {
+    "schema": "public",
+    "tables": ["apollo_instantdata_scrape_settings", "apollo_scrape_settings", "folders", "raw_salesnav_leads", "salesnav_scrape_settings", "temp_bad_company_domains", "top_priority_companies", "workbooks"]
+  },
+  {
+    "schema": "raw",
+    "tables": ["apollo_instantdata_scrapes", "apollo_scrape", "case_study_buyers_payloads", "case_study_extraction_payloads", "cb_vc_portfolio_payloads", "clay_cleaned_company_names", "clay_job_change_payloads", "clay_job_function_mapping", "clay_job_posting_payloads", "clay_new_hire_payloads", "clay_news_fundraising_payloads", "clay_promotion_payloads", "clay_seniority_mapping", "claygent_customers_raw", "claygent_customers_structured_raw", "claygent_customers_v2_raw", "company_customer_claygent_payloads", "company_discovery", "company_discovery_location_parsed", "company_enrich_similar_batches", "company_enrich_similar_queue", "company_enrich_similar_raw", "company_payloads", "company_vc_investors", "crunchbase_domain_inference_payloads", "email_anymailfinder", "email_leadmagic", "email_waterfall_jobs", "icp_fit_criterion", "icp_industries", "icp_job_titles", "icp_payloads", "icp_value_proposition", "icp_verdict_payloads", "instant_data_scraper", "leadmagic_company_enrichment", "manual_company_customers", "nostra_ecom_companies", "nostra_ecom_people", "person_discovery", "person_discovery_location_parsed", "person_payloads", "person_title_enrichment", "salesnav_scrapes", "salesnav_scrapes_company_address_payloads", "salesnav_scrapes_person_payloads", "signal_job_change_payloads", "signal_job_posting_payloads", "signal_promotion_payloads", "vc_crunchbase_portfolios", "vc_firms", "vc_portfolio_companies", "vc_portfolio_payloads"]
+  },
+  {
+    "schema": "realtime",
+    "tables": ["messages", "schema_migrations", "subscription"]
+  },
+  {
+    "schema": "reference",
+    "tables": ["apollo_companies_unmatched", "apollo_people_unmatched_companies", "apollo_people_unmatched_companies_deduped", "business_models", "clay_enriched_company_location_lookup", "clay_find_companies_location_lookup", "clay_find_people_location_lookup", "companies_missing_cleaned_name", "company_customers", "company_icp", "company_industries", "company_location_lookup", "company_types", "countries", "email_to_person", "employee_range_lookup", "employee_ranges", "enrichment_workflow_registry", "funding_range_lookup", "funding_ranges", "industry_lookup", "job_functions", "job_title_lookup", "job_title_parsed", "location_lookup", "location_parsed", "people_job_functions", "people_seniority", "person_discovery_missing_company", "revenue_range_lookup", "revenue_ranges", "salesnav_company_location_lookup", "salesnav_location_lookup", "salesnav_people_job_title_lookup", "seniorities", "signal_registry", "signals", "us_cities", "us_states"]
+  },
+  {
+    "schema": "staging",
+    "tables": ["case_study_urls_to_process", "companies_to_enrich", "forethought_icp_companies", "forethought_icp_leads", "forethought_icp_people", "withcoverage_champions"]
+  },
+  {
+    "schema": "storage",
+    "tables": ["buckets", "buckets_analytics", "buckets_vectors", "migrations", "objects", "prefixes", "s3_multipart_uploads", "s3_multipart_uploads_parts", "vector_indexes"]
+  },
+  {
+    "schema": "supabase_migrations",
+    "tables": ["schema_migrations"]
+  },
+  {
+    "schema": "temp",
+    "tables": ["domains_upload", "vc_backed_missing_customers"]
+  },
+  {
+    "schema": "vault",
+    "tables": ["secrets"]
+  }
+]

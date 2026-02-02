@@ -1,39 +1,19 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-interface BatchStatus {
-  status: "pending" | "processing" | "completed" | "completed_with_errors" | "error";
-  progress_percent: number;
-  processed_domains: number;
-  total_domains: number;
-  similar_companies_found?: number;
-  errors?: number;
-}
-
 export default function EnrichmentPage() {
+  const router = useRouter();
   const [pendingCount, setPendingCount] = useState<number | null>(null);
   const [batchSize, setBatchSize] = useState(200);
   const [similarityWeight, setSimilarityWeight] = useState(0.5);
   const [countryCode, setCountryCode] = useState("");
-  const [batchId, setBatchId] = useState<string | null>(null);
-  const [batchStatus, setBatchStatus] = useState<BatchStatus | null>(null);
-  const [isPolling, setIsPolling] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
-  // Cleanup polling on unmount
-  useEffect(() => {
-    return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-      }
-    };
-  }, []);
 
   // Load pending domains count on mount
   useEffect(() => {
@@ -62,7 +42,6 @@ export default function EnrichmentPage() {
   const submitBatch = async () => {
     setIsLoading(true);
     setError(null);
-    setBatchStatus(null);
 
     try {
       const body: Record<string, unknown> = {
@@ -88,8 +67,9 @@ export default function EnrichmentPage() {
       console.log("Batch response:", data);
 
       if (data.batch_id) {
-        setBatchId(data.batch_id);
-        startPolling(data.batch_id);
+        // Store batch ID and redirect to progress page
+        localStorage.setItem("activeBatchId", data.batch_id);
+        router.push("/batch-progress");
       } else {
         setError(data.error || "Failed to start batch");
       }
@@ -101,44 +81,6 @@ export default function EnrichmentPage() {
     }
   };
 
-  const startPolling = (id: string) => {
-    setIsPolling(true);
-
-    const poll = async () => {
-      try {
-        const res = await fetch(`${apiUrl}/api/enrichment/similar-companies/batch/${id}/status`);
-        const data: BatchStatus = await res.json();
-        setBatchStatus(data);
-
-        if (data.status === "completed" || data.status === "completed_with_errors" || data.status === "error") {
-          setIsPolling(false);
-          if (pollingRef.current) {
-            clearInterval(pollingRef.current);
-            pollingRef.current = null;
-          }
-          // Refresh pending count
-          refreshPendingCount();
-        }
-      } catch (err) {
-        console.error("Polling error:", err);
-      }
-    };
-
-    poll();
-    pollingRef.current = setInterval(poll, 3000);
-  };
-
-  const refreshPendingCount = async () => {
-    try {
-      const res = await fetch(`${apiUrl}/api/enrichment/similar-companies/pending?limit=1`);
-      const data = await res.json();
-      setPendingCount(data.total ?? 0);
-    } catch (err) {
-      console.error("Failed to refresh count:", err);
-    }
-  };
-
-  const isCompleted = batchStatus?.status === "completed" || batchStatus?.status === "completed_with_errors";
 
   return (
     <div className="min-h-screen bg-black">
@@ -225,73 +167,13 @@ export default function EnrichmentPage() {
 
           <button
             onClick={submitBatch}
-            disabled={isLoading || isPolling || pendingCount === 0}
+            disabled={isLoading || pendingCount === 0}
             className="mt-6 w-full px-6 py-3 bg-white text-black rounded font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? "Starting..." : isPolling ? "Processing..." : "Start Batch"}
+            {isLoading ? "Starting..." : "Start Batch"}
           </button>
         </section>
 
-        {/* Active Batch */}
-        {batchId && batchStatus && !isCompleted && (
-          <section className="mb-8 p-6 rounded-xl border border-gray-800 bg-gray-900/50">
-            <h2 className="text-white font-semibold mb-4">Active Batch</h2>
-
-            <div className="space-y-2 text-sm">
-              <p className="text-gray-400">Batch: <span className="text-white font-mono">{batchId}</span></p>
-              <p className="text-gray-400">Status: <span className="text-yellow-400">{batchStatus.status}</span></p>
-
-              <div className="pt-2">
-                <div className="flex justify-between text-gray-400 mb-1">
-                  <span>Progress</span>
-                  <span>{batchStatus.processed_domains} / {batchStatus.total_domains}</span>
-                </div>
-                <div className="w-full bg-gray-700 rounded h-2">
-                  <div
-                    className="bg-white h-2 rounded transition-all"
-                    style={{ width: `${batchStatus.progress_percent}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Results */}
-        {isCompleted && batchStatus && (
-          <section className="p-6 rounded-xl border border-gray-800 bg-gray-900/50">
-            <h2 className="text-white font-semibold mb-4">Results</h2>
-
-            <div className="space-y-2 text-sm">
-              <p className="text-green-400 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 6 9 17l-5-5" />
-                </svg>
-                Completed: {batchStatus.processed_domains} domains processed
-              </p>
-              {batchStatus.similar_companies_found !== undefined && (
-                <p className="text-gray-400">
-                  Similar companies found: <span className="text-white">{batchStatus.similar_companies_found}</span>
-                </p>
-              )}
-              {batchStatus.errors !== undefined && batchStatus.errors > 0 && (
-                <p className="text-red-400">
-                  Errors: {batchStatus.errors}
-                </p>
-              )}
-            </div>
-
-            <button
-              onClick={() => {
-                setBatchId(null);
-                setBatchStatus(null);
-              }}
-              className="mt-4 text-sm text-gray-400 hover:text-white"
-            >
-              Start New Batch
-            </button>
-          </section>
-        )}
       </main>
     </div>
   );

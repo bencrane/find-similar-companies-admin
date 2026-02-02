@@ -26,8 +26,9 @@ export default function DataIngestPage() {
 
       {/* Content */}
       <main className="p-8">
-        <Link href="/enrichment">
-          <div className="max-w-md rounded-xl border border-gray-800 bg-gray-900/50 p-6 cursor-pointer hover:border-gray-700 transition-colors">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Link href="/enrichment" className="block">
+          <div className="h-full rounded-xl border border-gray-800 bg-gray-900/50 p-6 cursor-pointer hover:border-gray-700 transition-colors">
             <div className="flex items-start justify-between mb-6">
               <div className="p-3 rounded-lg bg-gray-800">
                 <svg
@@ -69,6 +70,50 @@ export default function DataIngestPage() {
             </p>
           </div>
         </Link>
+
+        <Link href="/admin/data-ingest/linkedin-jobs-video" className="block">
+          <div className="h-full rounded-xl border border-gray-800 bg-gray-900/50 p-6 cursor-pointer hover:border-gray-700 transition-colors">
+            <div className="flex items-start justify-between mb-6">
+              <div className="p-3 rounded-lg bg-gray-800">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-gray-400"
+                >
+                  <path d="m22 8-6 4 6 4V8Z" />
+                  <rect width="14" height="12" x="2" y="6" rx="2" ry="2" />
+                </svg>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-gray-500"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </div>
+            <h2 className="text-white font-semibold text-lg">LinkedIn Jobs Feed Video Upload</h2>
+            <p className="text-gray-400 text-sm mt-2">
+              Upload a video recording of LinkedIn job search results
+            </p>
+          </div>
+        </Link>
+        </div>
       </main>
     </div>
   );
