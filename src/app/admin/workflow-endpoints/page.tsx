@@ -268,10 +268,18 @@ export default function WorkflowEndpointsPage() {
                             {/* API Endpoints */}
                             <div className="mb-4 space-y-2">
                               {workflow.api_endpoint_url && (
-                                <div className="flex items-center gap-2">
-                                  <span className="text-gray-500 text-sm">API Endpoint:</span>
-                                  <code className="text-green-400 font-mono text-sm bg-gray-800 px-2 py-1 rounded">{workflow.api_endpoint_url}</code>
-                                </div>
+                                <>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-gray-500 text-sm">API Endpoint:</span>
+                                    <code className="text-green-400 font-mono text-sm bg-gray-800 px-2 py-1 rounded">{workflow.api_endpoint_url}</code>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-gray-500 text-sm">Full URL:</span>
+                                    <code className="text-green-400 font-mono text-xs bg-gray-800 px-2 py-1 rounded break-all">
+                                      https://api.revenueinfra.com{workflow.api_endpoint_url.replace(/^(POST|GET|PUT|DELETE|PATCH)\s+/, "")}
+                                    </code>
+                                  </div>
+                                </>
                               )}
                               {workflow.modal_endpoint_url && (
                                 <div className="flex items-center gap-2">
