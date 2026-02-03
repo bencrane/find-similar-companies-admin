@@ -5,6 +5,7 @@ import Link from "next/link";
 
 interface Workflow {
   workflow_slug: string;
+  new_workflow_slug?: string;
   provider?: string;
   platform?: string;
   payload_type?: string;
@@ -17,6 +18,9 @@ interface Workflow {
   coalesces_to_core?: boolean;
   usage_category?: string;
   is_active?: boolean;
+  modal_function_name?: string;
+  modal_endpoint_url?: string;
+  api_endpoint_url?: string;
 }
 
 export default function WorkflowEndpointsPage() {
@@ -275,7 +279,7 @@ export default function WorkflowEndpointsPage() {
                           </svg>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-white font-medium">{workflow.workflow_slug}</div>
+                          <div className="text-white font-medium font-mono text-sm">{workflow.new_workflow_slug || workflow.workflow_slug}</div>
                           {workflow.description && (
                             <div className="text-gray-500 text-sm mt-1">{workflow.description}</div>
                           )}
@@ -303,6 +307,22 @@ export default function WorkflowEndpointsPage() {
                       {isExpanded && (
                         <tr key={`${workflow.workflow_slug}-details`} className="bg-gray-900/50">
                           <td colSpan={7} className="px-6 py-4">
+                            {/* API Endpoints */}
+                            <div className="mb-4 space-y-2">
+                              {workflow.api_endpoint_url && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-gray-500 text-sm">API Endpoint:</span>
+                                  <code className="text-green-400 font-mono text-sm bg-gray-800 px-2 py-1 rounded">{workflow.api_endpoint_url}</code>
+                                </div>
+                              )}
+                              {workflow.modal_endpoint_url && (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-gray-500 text-sm">Modal URL:</span>
+                                  <code className="text-blue-400 font-mono text-xs bg-gray-800 px-2 py-1 rounded break-all">{workflow.modal_endpoint_url}</code>
+                                </div>
+                              )}
+                            </div>
+                            {/* Other Details */}
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                               <div>
                                 <span className="text-gray-500">Workflow Type:</span>
@@ -315,6 +335,10 @@ export default function WorkflowEndpointsPage() {
                               <div>
                                 <span className="text-gray-500">Platform:</span>
                                 <span className="text-white ml-2">{workflow.platform || "-"}</span>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Modal Function:</span>
+                                <span className="text-gray-300 ml-2 font-mono text-xs">{workflow.modal_function_name || "-"}</span>
                               </div>
                               <div>
                                 <span className="text-gray-500">Raw Table:</span>
