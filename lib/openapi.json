@@ -2610,6 +2610,89 @@
         }
       }
     },
+    "/api/companies/{domain}/has-case-studies": {
+      "get": {
+        "tags": [
+          "companies"
+        ],
+        "summary": "Check Has Case Studies",
+        "description": "Check if case study details have been extracted for this company.\nReturns: { \"has_case_studies\": true/false, \"count\": N, \"last_extracted_at\": timestamp }",
+        "operationId": "check_has_case_studies_api_companies__domain__has_case_studies_get",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Domain"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/companies/check-has-case-studies": {
+      "post": {
+        "tags": [
+          "companies"
+        ],
+        "summary": "Check Has Case Studies Post",
+        "description": "Simple check via POST: does this company have case study details extracted?\nPayload: { \"domain\": \"example.com\" }\nReturns: { \"has_case_studies\": true/false, \"count\": N, \"last_extracted_at\": timestamp }",
+        "operationId": "check_has_case_studies_post_api_companies_check_has_case_studies_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/companies/{domain}/customers": {
       "get": {
         "tags": [
@@ -3118,6 +3201,48 @@
         }
       }
     },
+    "/api/companies/enrichment-status": {
+      "post": {
+        "tags": [
+          "companies"
+        ],
+        "summary": "Check Company Enrichment Status",
+        "description": "Check if a company has been enriched by a specific workflow.\n\nPayload: {\n    \"company_name\": \"Acme Inc\",        # optional (for clarity)\n    \"domain\": \"acme.com\",              # required\n    \"company_linkedin_url\": \"...\",     # optional\n    \"workflow_slug\": \"clay-company-firmographics\"  # required\n}\n\nReturns: { \"enriched\": true/false, \"last_enriched_at\": timestamp }",
+        "operationId": "check_company_enrichment_status_api_companies_enrichment_status_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/companies/{domain}": {
       "get": {
         "tags": [
@@ -3155,6 +3280,167 @@
                 "schema": {
                   "$ref": "#/components/schemas/HTTPValidationError"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/enrichment/workflows": {
+      "get": {
+        "tags": [
+          "enrichment"
+        ],
+        "summary": "Get Workflows",
+        "description": "Get all enrichment workflows from the registry.\n\nUse coalesces_to_core=true to see workflows that write to core tables.\nUse coalesces_to_core=false to see workflows that only write to raw/extracted.\nUse usage_category=client to see client-facing workflows (signals).\nUse usage_category=internal-hq to see internal HQ workflows.",
+        "operationId": "get_workflows_api_enrichment_workflows_get",
+        "parameters": [
+          {
+            "name": "entity_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by entity type: company, person, target_client",
+              "title": "Entity Type"
+            },
+            "description": "Filter by entity type: company, person, target_client"
+          },
+          {
+            "name": "coalesces_to_core",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by whether data flows to core schema",
+              "title": "Coalesces To Core"
+            },
+            "description": "Filter by whether data flows to core schema"
+          },
+          {
+            "name": "payload_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by payload type: enrichment, inference, signal, etc.",
+              "title": "Payload Type"
+            },
+            "description": "Filter by payload type: enrichment, inference, signal, etc."
+          },
+          {
+            "name": "usage_category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by usage category: client, internal-hq",
+              "title": "Usage Category"
+            },
+            "description": "Filter by usage category: client, internal-hq"
+          },
+          {
+            "name": "workflow_type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by workflow type: ingest, calls_ai, lookup, utility, backfill",
+              "title": "Workflow Type"
+            },
+            "description": "Filter by workflow type: ingest, calls_ai, lookup, utility, backfill"
+          },
+          {
+            "name": "is_active",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by active status",
+              "default": true,
+              "title": "Is Active"
+            },
+            "description": "Filter by active status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/enrichment/workflows/summary": {
+      "get": {
+        "tags": [
+          "enrichment"
+        ],
+        "summary": "Get Workflows Summary",
+        "description": "Get a summary of workflow counts by entity type, core status, and usage category.",
+        "operationId": "get_workflows_summary_api_enrichment_workflows_summary_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           }
@@ -3608,6 +3894,132 @@
                 "schema": {
                   "$ref": "#/components/schemas/PeopleResponse"
                 }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/people/work-history": {
+      "post": {
+        "tags": [
+          "people"
+        ],
+        "summary": "Get Person Work History",
+        "description": "Get a person's full work history from enrichment data.\nReturns all past and current positions.",
+        "operationId": "get_person_work_history_api_people_work_history_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkedInUrlRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonWorkHistoryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/people/enrichment-status": {
+      "post": {
+        "tags": [
+          "people"
+        ],
+        "summary": "Get Person Enrichment Status",
+        "description": "Quick check if a person has been enriched (has work history data).\nReturns enrichment status and the date of last insert.",
+        "operationId": "get_person_enrichment_status_api_people_enrichment_status_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkedInUrlRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonEnrichmentStatusResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/people/workflow-enrichment-status": {
+      "post": {
+        "tags": [
+          "people"
+        ],
+        "summary": "Check Person Workflow Enrichment Status",
+        "description": "Check if a person has been enriched by a specific workflow.\n\nPayload: {\n    \"company_name\": \"Acme Inc\",           # optional (for clarity)\n    \"domain\": \"acme.com\",                 # optional (for clarity)\n    \"person_linkedin_url\": \"linkedin.com/in/johndoe\",  # required\n    \"workflow_slug\": \"clay-person-profile\"  # required\n}\n\nReturns: { \"enriched\": true/false, \"last_enriched_at\": timestamp }",
+        "operationId": "check_person_workflow_enrichment_status_api_people_workflow_enrichment_status_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "type": "object",
+                "title": "Payload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
               }
             }
           },
@@ -9727,6 +10139,19 @@
         ],
         "title": "LeadsResponse"
       },
+      "LinkedInUrlRequest": {
+        "properties": {
+          "linkedin_url": {
+            "type": "string",
+            "title": "Linkedin Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "linkedin_url"
+        ],
+        "title": "LinkedInUrlRequest"
+      },
       "MagicLinkRequest": {
         "properties": {
           "email": {
@@ -10132,6 +10557,71 @@
         },
         "type": "object",
         "title": "Person"
+      },
+      "PersonEnrichmentStatusResponse": {
+        "properties": {
+          "linkedin_url": {
+            "type": "string",
+            "title": "Linkedin Url"
+          },
+          "is_enriched": {
+            "type": "boolean",
+            "title": "Is Enriched"
+          },
+          "entry_count": {
+            "type": "integer",
+            "title": "Entry Count"
+          },
+          "last_enriched_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Enriched At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "linkedin_url",
+          "is_enriched",
+          "entry_count"
+        ],
+        "title": "PersonEnrichmentStatusResponse"
+      },
+      "PersonWorkHistoryResponse": {
+        "properties": {
+          "linkedin_url": {
+            "type": "string",
+            "title": "Linkedin Url"
+          },
+          "has_work_history": {
+            "type": "boolean",
+            "title": "Has Work History"
+          },
+          "entry_count": {
+            "type": "integer",
+            "title": "Entry Count"
+          },
+          "work_history": {
+            "items": {
+              "$ref": "#/components/schemas/WorkHistoryEntry"
+            },
+            "type": "array",
+            "title": "Work History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "linkedin_url",
+          "has_work_history",
+          "entry_count",
+          "work_history"
+        ],
+        "title": "PersonWorkHistoryResponse"
       },
       "PriorityCompaniesResponse": {
         "properties": {
@@ -10651,6 +11141,113 @@
           "success"
         ],
         "title": "VerifyMagicLinkResponse"
+      },
+      "WorkHistoryEntry": {
+        "properties": {
+          "company_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Name"
+          },
+          "company_domain": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Domain"
+          },
+          "company_linkedin_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Linkedin Url"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "matched_job_function": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matched Job Function"
+          },
+          "matched_seniority": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matched Seniority"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "is_current": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Current"
+          }
+        },
+        "type": "object",
+        "title": "WorkHistoryEntry"
       }
     }
   }
