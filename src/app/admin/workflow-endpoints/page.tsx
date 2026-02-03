@@ -29,13 +29,11 @@ export default function WorkflowEndpointsPage() {
   const [error, setError] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
-  // Filters based on API spec
-  const [entityTypeFilter, setEntityTypeFilter] = useState<string>("all");
-  const [payloadTypeFilter, setPayloadTypeFilter] = useState<string>("all");
-  const [workflowTypeFilter, setWorkflowTypeFilter] = useState<string>("all");
-  const [usageCategoryFilter, setUsageCategoryFilter] = useState<string>("all");
-  const [coalescesToCoreFilter, setCoalescesToCoreFilter] = useState<string>("all");
-  const [isActiveFilter, setIsActiveFilter] = useState<string>("all");
+  // Filters: Category, Provider, Mechanism, Action
+  const [categoryFilter, setCategoryFilter] = useState<string>("all"); // entity_type
+  const [providerFilter, setProviderFilter] = useState<string>("all"); // provider
+  const [mechanismFilter, setMechanismFilter] = useState<string>("all"); // workflow_type
+  const [actionFilter, setActionFilter] = useState<string>("all"); // payload_type
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -64,25 +62,19 @@ export default function WorkflowEndpointsPage() {
   }, [apiUrl]);
 
   // Get unique values for filter dropdowns
-  const entityTypes = ["all", ...new Set(workflows.map((w) => w.entity_type).filter(Boolean))];
-  const payloadTypes = ["all", ...new Set(workflows.map((w) => w.payload_type).filter(Boolean))];
-  const workflowTypes = ["all", ...new Set(workflows.map((w) => w.workflow_type).filter(Boolean))];
-  const usageCategories = ["all", ...new Set(workflows.map((w) => w.usage_category).filter(Boolean))];
+  const categories = ["all", ...new Set(workflows.map((w) => w.entity_type).filter(Boolean))];
+  const providers = ["all", ...new Set(workflows.map((w) => w.provider).filter(Boolean))];
+  const mechanisms = ["all", ...new Set(workflows.map((w) => w.workflow_type).filter(Boolean))];
+  const actions = ["all", ...new Set(workflows.map((w) => w.payload_type).filter(Boolean))];
 
   // Filter workflows
   const filteredWorkflows = workflows.filter((workflow) => {
-    const matchesEntityType = entityTypeFilter === "all" || workflow.entity_type === entityTypeFilter;
-    const matchesPayloadType = payloadTypeFilter === "all" || workflow.payload_type === payloadTypeFilter;
-    const matchesWorkflowType = workflowTypeFilter === "all" || workflow.workflow_type === workflowTypeFilter;
-    const matchesUsageCategory = usageCategoryFilter === "all" || workflow.usage_category === usageCategoryFilter;
-    const matchesCoalescesToCore = coalescesToCoreFilter === "all" ||
-      (coalescesToCoreFilter === "true" && workflow.coalesces_to_core === true) ||
-      (coalescesToCoreFilter === "false" && workflow.coalesces_to_core === false);
-    const matchesIsActive = isActiveFilter === "all" ||
-      (isActiveFilter === "true" && workflow.is_active === true) ||
-      (isActiveFilter === "false" && workflow.is_active === false);
+    const matchesCategory = categoryFilter === "all" || workflow.entity_type === categoryFilter;
+    const matchesProvider = providerFilter === "all" || workflow.provider === providerFilter;
+    const matchesMechanism = mechanismFilter === "all" || workflow.workflow_type === mechanismFilter;
+    const matchesAction = actionFilter === "all" || workflow.payload_type === actionFilter;
 
-    return matchesEntityType && matchesPayloadType && matchesWorkflowType && matchesUsageCategory && matchesCoalescesToCore && matchesIsActive;
+    return matchesCategory && matchesProvider && matchesMechanism && matchesAction;
   });
 
   const toggleRow = (slug: string) => {
@@ -132,58 +124,13 @@ export default function WorkflowEndpointsPage() {
         {/* Filters */}
         <div className="mb-6 flex flex-wrap gap-4">
           <div>
-            <label className="block text-gray-500 text-xs mb-1">Entity Type</label>
+            <label className="block text-gray-500 text-xs mb-1">Category</label>
             <select
-              value={entityTypeFilter}
-              onChange={(e) => setEntityTypeFilter(e.target.value)}
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
               className="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white focus:outline-none focus:border-gray-500"
             >
-              {entityTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type === "all" ? "All" : type}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-gray-500 text-xs mb-1">Payload Type</label>
-            <select
-              value={payloadTypeFilter}
-              onChange={(e) => setPayloadTypeFilter(e.target.value)}
-              className="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white focus:outline-none focus:border-gray-500"
-            >
-              {payloadTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type === "all" ? "All" : type}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-gray-500 text-xs mb-1">Workflow Type</label>
-            <select
-              value={workflowTypeFilter}
-              onChange={(e) => setWorkflowTypeFilter(e.target.value)}
-              className="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white focus:outline-none focus:border-gray-500"
-            >
-              {workflowTypes.map((type) => (
-                <option key={type} value={type}>
-                  {type === "all" ? "All" : type}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-gray-500 text-xs mb-1">Usage Category</label>
-            <select
-              value={usageCategoryFilter}
-              onChange={(e) => setUsageCategoryFilter(e.target.value)}
-              className="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white focus:outline-none focus:border-gray-500"
-            >
-              {usageCategories.map((cat) => (
+              {categories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat === "all" ? "All" : cat}
                 </option>
@@ -192,28 +139,47 @@ export default function WorkflowEndpointsPage() {
           </div>
 
           <div>
-            <label className="block text-gray-500 text-xs mb-1">Coalesces to Core</label>
+            <label className="block text-gray-500 text-xs mb-1">Provider</label>
             <select
-              value={coalescesToCoreFilter}
-              onChange={(e) => setCoalescesToCoreFilter(e.target.value)}
+              value={providerFilter}
+              onChange={(e) => setProviderFilter(e.target.value)}
               className="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white focus:outline-none focus:border-gray-500"
             >
-              <option value="all">All</option>
-              <option value="true">Yes</option>
-              <option value="false">No</option>
+              {providers.map((prov) => (
+                <option key={prov} value={prov}>
+                  {prov === "all" ? "All" : prov}
+                </option>
+              ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-gray-500 text-xs mb-1">Active</label>
+            <label className="block text-gray-500 text-xs mb-1">Mechanism</label>
             <select
-              value={isActiveFilter}
-              onChange={(e) => setIsActiveFilter(e.target.value)}
+              value={mechanismFilter}
+              onChange={(e) => setMechanismFilter(e.target.value)}
               className="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white focus:outline-none focus:border-gray-500"
             >
-              <option value="all">All</option>
-              <option value="true">Active</option>
-              <option value="false">Inactive</option>
+              {mechanisms.map((mech) => (
+                <option key={mech} value={mech}>
+                  {mech === "all" ? "All" : mech}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-gray-500 text-xs mb-1">Action</label>
+            <select
+              value={actionFilter}
+              onChange={(e) => setActionFilter(e.target.value)}
+              className="px-4 py-2 bg-gray-900 border border-gray-700 rounded text-white focus:outline-none focus:border-gray-500"
+            >
+              {actions.map((action) => (
+                <option key={action} value={action}>
+                  {action === "all" ? "All" : action}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -245,11 +211,10 @@ export default function WorkflowEndpointsPage() {
                 <tr>
                   <th className="w-8"></th>
                   <th className="text-left text-gray-400 text-sm font-medium px-6 py-4">Workflow</th>
-                  <th className="text-left text-gray-400 text-sm font-medium px-6 py-4">Entity</th>
-                  <th className="text-left text-gray-400 text-sm font-medium px-6 py-4">Payload</th>
-                  <th className="text-left text-gray-400 text-sm font-medium px-6 py-4">Usage</th>
-                  <th className="text-left text-gray-400 text-sm font-medium px-6 py-4">Core</th>
-                  <th className="text-left text-gray-400 text-sm font-medium px-6 py-4">Active</th>
+                  <th className="text-left text-gray-400 text-sm font-medium px-6 py-4">Category</th>
+                  <th className="text-left text-gray-400 text-sm font-medium px-6 py-4">Provider</th>
+                  <th className="text-left text-gray-400 text-sm font-medium px-6 py-4">Mechanism</th>
+                  <th className="text-left text-gray-400 text-sm font-medium px-6 py-4">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -288,25 +253,18 @@ export default function WorkflowEndpointsPage() {
                           <span className="text-gray-300">{workflow.entity_type || "-"}</span>
                         </td>
                         <td className="px-6 py-4">
+                          <span className="text-gray-300">{workflow.provider || "-"}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-gray-300">{workflow.workflow_type || "-"}</span>
+                        </td>
+                        <td className="px-6 py-4">
                           <span className="text-gray-300">{workflow.payload_type || "-"}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-gray-300">{workflow.usage_category || "-"}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={workflow.coalesces_to_core ? "text-green-400" : "text-gray-500"}>
-                            {workflow.coalesces_to_core ? "Yes" : "No"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={workflow.is_active ? "text-green-400" : "text-red-400"}>
-                            {workflow.is_active ? "Active" : "Inactive"}
-                          </span>
                         </td>
                       </tr>
                       {isExpanded && (
                         <tr key={`${workflow.workflow_slug}-details`} className="bg-gray-900/50">
-                          <td colSpan={7} className="px-6 py-4">
+                          <td colSpan={6} className="px-6 py-4">
                             {/* API Endpoints */}
                             <div className="mb-4 space-y-2">
                               {workflow.api_endpoint_url && (
