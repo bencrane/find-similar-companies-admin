@@ -3,18 +3,22 @@
 import { useState, useRef } from "react";
 import Link from "next/link";
 
+const MODAL_ENDPOINT = "https://bencrane--hq-master-data-ingest-ingest-linkedin-job-video.modal.run";
+
 export default function LinkedInJobsVideoPage() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [date, setDate] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<{ success: boolean; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setVideoFile(file);
+      setUploadStatus(null);
     }
   };
 
@@ -23,6 +27,7 @@ export default function LinkedInJobsVideoPage() {
     const file = e.dataTransfer.files?.[0];
     if (file && file.type.startsWith("video/")) {
       setVideoFile(file);
+      setUploadStatus(null);
     }
   };
 
@@ -30,18 +35,37 @@ export default function LinkedInJobsVideoPage() {
     if (!videoFile) return;
 
     setIsUploading(true);
-    // TODO: Implement upload logic
-    console.log("Uploading:", {
-      video: videoFile.name,
-      searchQuery,
-      date,
-      linkedinUrl,
-    });
+    setUploadStatus(null);
 
-    // Simulate upload
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsUploading(false);
-    alert("Upload complete (placeholder)");
+    try {
+      const formData = new FormData();
+      formData.append("video", videoFile);
+      if (searchQuery) formData.append("search_query", searchQuery);
+      if (date) formData.append("date", date);
+      if (linkedinUrl) formData.append("linkedin_url", linkedinUrl);
+
+      const response = await fetch(MODAL_ENDPOINT, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUploadStatus({ success: true, message: data.message || "Video uploaded successfully!" });
+        setVideoFile(null);
+        setSearchQuery("");
+        setDate("");
+        setLinkedinUrl("");
+      } else {
+        setUploadStatus({ success: false, message: data.error || data.detail || "Upload failed" });
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      setUploadStatus({ success: false, message: "Network error - failed to upload video" });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -199,6 +223,19 @@ export default function LinkedInJobsVideoPage() {
           >
             {isUploading ? "Uploading..." : "Upload Video"}
           </button>
+
+          {/* Upload Status */}
+          {uploadStatus && (
+            <div
+              className={`p-4 rounded-lg ${
+                uploadStatus.success
+                  ? "bg-green-900/50 border border-green-700 text-green-400"
+                  : "bg-red-900/50 border border-red-700 text-red-400"
+              }`}
+            >
+              {uploadStatus.message}
+            </div>
+          )}
         </div>
       </main>
     </div>
