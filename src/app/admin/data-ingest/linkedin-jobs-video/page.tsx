@@ -11,6 +11,7 @@ export default function LinkedInJobsVideoPage() {
   const [date, setDate] = useState("");
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStatus, setUploadStatus] = useState<{ success: boolean; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -31,41 +32,54 @@ export default function LinkedInJobsVideoPage() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!videoFile) return;
 
     setIsUploading(true);
     setUploadStatus(null);
+    setUploadProgress(0);
 
-    try {
-      const formData = new FormData();
-      formData.append("video", videoFile);
-      if (searchQuery) formData.append("search_query", searchQuery);
-      if (date) formData.append("date", date);
-      if (linkedinUrl) formData.append("linkedin_url", linkedinUrl);
+    const formData = new FormData();
+    formData.append("video", videoFile);
+    if (searchQuery) formData.append("search_query", searchQuery);
+    if (date) formData.append("date", date);
+    if (linkedinUrl) formData.append("linkedin_url", linkedinUrl);
 
-      const response = await fetch(MODAL_ENDPOINT, {
-        method: "POST",
-        body: formData,
-      });
+    const xhr = new XMLHttpRequest();
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setUploadStatus({ success: true, message: data.message || "Video uploaded successfully!" });
-        setVideoFile(null);
-        setSearchQuery("");
-        setDate("");
-        setLinkedinUrl("");
-      } else {
-        setUploadStatus({ success: false, message: data.error || data.detail || "Upload failed" });
+    xhr.upload.addEventListener("progress", (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
+        setUploadProgress(percent);
       }
-    } catch (error) {
-      console.error("Upload error:", error);
-      setUploadStatus({ success: false, message: "Network error - failed to upload video" });
-    } finally {
+    });
+
+    xhr.addEventListener("load", () => {
       setIsUploading(false);
-    }
+      try {
+        const data = JSON.parse(xhr.responseText);
+        if (xhr.status >= 200 && xhr.status < 300) {
+          setUploadStatus({ success: true, message: data.message || "Video uploaded successfully!" });
+          setVideoFile(null);
+          setSearchQuery("");
+          setDate("");
+          setLinkedinUrl("");
+          setUploadProgress(0);
+        } else {
+          setUploadStatus({ success: false, message: data.error || data.detail || `Upload failed (${xhr.status})` });
+        }
+      } catch {
+        setUploadStatus({ success: false, message: `Upload failed (${xhr.status})` });
+      }
+    });
+
+    xhr.addEventListener("error", () => {
+      setIsUploading(false);
+      setUploadStatus({ success: false, message: "Network error - failed to upload video" });
+    });
+
+    xhr.open("POST", MODAL_ENDPOINT);
+    xhr.send(formData);
   };
 
   return (
@@ -221,8 +235,25 @@ export default function LinkedInJobsVideoPage() {
             disabled={!videoFile || isUploading}
             className="w-full px-6 py-3 bg-white text-black rounded font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
           >
-            {isUploading ? "Uploading..." : "Upload Video"}
+            {isUploading ? `Uploading... ${uploadProgress}%` : "Upload Video"}
           </button>
+
+          {/* Progress Bar */}
+          {isUploading && (
+            <div className="space-y-2">
+              <div className="w-full bg-gray-800 rounded-full h-3 overflow-hidden">
+                <div
+                  className="bg-green-500 h-3 transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+              <p className="text-gray-400 text-sm text-center">
+                {uploadProgress < 100
+                  ? `Uploading video... ${uploadProgress}%`
+                  : "Processing on server..."}
+              </p>
+            </div>
+          )}
 
           {/* Upload Status */}
           {uploadStatus && (
