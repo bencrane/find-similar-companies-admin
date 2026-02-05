@@ -100,7 +100,7 @@ export default function AdminPage() {
           </div>
         </Link>
 
-        <Link href="/admin/data-gaps" className="block">
+        <Link href="/admin/all-data-gaps" className="block">
           <div className="h-full rounded-xl border border-gray-800 bg-gray-900/50 p-6 cursor-pointer hover:border-gray-700 transition-colors">
             <div className="flex items-start justify-between mb-6">
               <div className="p-3 rounded-lg bg-gray-800">
@@ -137,97 +137,9 @@ export default function AdminPage() {
                 <path d="m12 5 7 7-7 7" />
               </svg>
             </div>
-            <h2 className="text-white font-semibold text-lg">Data Gaps</h2>
+            <h2 className="text-white font-semibold text-lg">All Data Gaps</h2>
             <p className="text-gray-400 text-sm mt-2">
-              Identify and analyze data quality gaps
-            </p>
-          </div>
-        </Link>
-
-        <Link href="/admin/past-employer-gaps" className="block">
-          <div className="h-full rounded-xl border border-gray-800 bg-gray-900/50 p-6 cursor-pointer hover:border-gray-700 transition-colors">
-            <div className="flex items-start justify-between mb-6">
-              <div className="p-3 rounded-lg bg-gray-800">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-gray-400"
-                >
-                  <path d="M3 3v18h18" />
-                  <path d="m19 9-5 5-4-4-3 3" />
-                </svg>
-              </div>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-gray-500"
-              >
-                <path d="M5 12h14" />
-                <path d="m12 5 7 7-7 7" />
-              </svg>
-            </div>
-            <h2 className="text-white font-semibold text-lg">Past Employer Gaps and Stats</h2>
-            <p className="text-gray-400 text-sm mt-2">
-              View past employer data gaps and statistics
-            </p>
-          </div>
-        </Link>
-
-        <Link href="/admin/test-companies-data-gaps" className="block">
-          <div className="h-full rounded-xl border border-gray-800 bg-gray-900/50 p-6 cursor-pointer hover:border-gray-700 transition-colors">
-            <div className="flex items-start justify-between mb-6">
-              <div className="p-3 rounded-lg bg-gray-800">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-gray-400"
-                >
-                  <rect x="3" y="3" width="7" height="7" />
-                  <rect x="14" y="3" width="7" height="7" />
-                  <rect x="3" y="14" width="7" height="7" />
-                  <rect x="14" y="14" width="7" height="7" />
-                </svg>
-              </div>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="text-gray-500"
-              >
-                <path d="M5 12h14" />
-                <path d="m12 5 7 7-7 7" />
-              </svg>
-            </div>
-            <h2 className="text-white font-semibold text-lg">Test Companies - Data Gaps</h2>
-            <p className="text-gray-400 text-sm mt-2">
-              View data coverage across ~120 test companies
+              View and analyze all data gap reports
             </p>
           </div>
         </Link>
