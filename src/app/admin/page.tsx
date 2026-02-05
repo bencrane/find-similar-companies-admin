@@ -187,6 +187,51 @@ export default function AdminPage() {
           </div>
         </Link>
 
+        <Link href="/admin/test-companies-data-gaps" className="block">
+          <div className="h-full rounded-xl border border-gray-800 bg-gray-900/50 p-6 cursor-pointer hover:border-gray-700 transition-colors">
+            <div className="flex items-start justify-between mb-6">
+              <div className="p-3 rounded-lg bg-gray-800">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-gray-400"
+                >
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                </svg>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-gray-500"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </div>
+            <h2 className="text-white font-semibold text-lg">Test Companies - Data Gaps</h2>
+            <p className="text-gray-400 text-sm mt-2">
+              View data coverage across ~120 test companies
+            </p>
+          </div>
+        </Link>
+
         <Link href="/admin/workflow-endpoints" className="block">
           <div className="h-full rounded-xl border border-gray-800 bg-gray-900/50 p-6 cursor-pointer hover:border-gray-700 transition-colors">
             <div className="flex items-start justify-between mb-6">
