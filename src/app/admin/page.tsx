@@ -274,6 +274,48 @@ export default function AdminPage() {
             </p>
           </div>
         </Link>
+        <Link href="/admin/simulate" className="block">
+          <div className="h-full rounded-xl border border-gray-800 bg-gray-900/50 p-6 cursor-pointer hover:border-gray-700 transition-colors">
+            <div className="flex items-start justify-between mb-6">
+              <div className="p-3 rounded-lg bg-gray-800">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-gray-400"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polygon points="10 8 16 12 10 16 10 8" />
+                </svg>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-gray-500"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </div>
+            <h2 className="text-white font-semibold text-lg">Simulate As-If for a Real Client</h2>
+            <p className="text-gray-400 text-sm mt-2">
+              Run end-to-end simulations of client workflows
+            </p>
+          </div>
+        </Link>
         </div>
       </main>
     </div>

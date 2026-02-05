@@ -492,12 +492,12 @@ export default function TestCompaniesDataGapsPage() {
           ) : data.length === 0 ? (
             <p className="text-gray-400">No data returned from API.</p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-800">
+            <div className="overflow-auto rounded-xl border border-gray-800" style={{ maxHeight: "calc(100vh - 200px)" }}>
               <table className="border-collapse">
-                <thead>
+                <thead className="sticky top-0 z-20">
                   {/* Tier group header row */}
                   <tr className="border-b border-gray-800">
-                    <th className="sticky left-0 z-10 bg-gray-900 border-r border-gray-800" />
+                    <th className="sticky left-0 z-30 bg-gray-900 border-r border-gray-800" />
                     {tieredGroups.map((tier) => {
                       const visibleInTier = tier.columns.filter((c) => visibleColumns.has(c));
                       if (visibleInTier.length === 0) return null;
@@ -505,7 +505,7 @@ export default function TestCompaniesDataGapsPage() {
                         <th
                           key={tier.label}
                           colSpan={visibleInTier.length}
-                          className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-900/80 border-l border-gray-700"
+                          className="px-3 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-900 border-l border-gray-700"
                         >
                           {tier.label}
                         </th>
@@ -514,13 +514,13 @@ export default function TestCompaniesDataGapsPage() {
                   </tr>
                   {/* Column name row */}
                   <tr className="border-b border-gray-800">
-                    <th className="sticky left-0 z-10 bg-gray-900 px-3 py-3 text-left text-sm font-medium text-gray-400 border-r border-gray-800">
+                    <th className="sticky left-0 z-30 bg-gray-900 px-3 py-3 text-left text-sm font-medium text-gray-400 border-r border-gray-800">
                       domain
                     </th>
                     {activeColumns.map((col) => (
                       <th
                         key={col}
-                        className="px-3 py-3 text-left text-sm font-medium text-gray-400 bg-gray-900/80 whitespace-nowrap"
+                        className="px-3 py-3 text-left text-sm font-medium text-gray-400 bg-gray-900 whitespace-nowrap"
                       >
                         {col}
                       </th>
