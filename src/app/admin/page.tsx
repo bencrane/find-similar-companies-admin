@@ -440,9 +440,53 @@ export default function AdminPage() {
                 <path d="m12 5 7 7-7 7" />
               </svg>
             </div>
-            <h2 className="text-white font-semibold text-lg">Systems to Add</h2>
+            <h2 className="text-white font-semibold text-lg">Add Systems to Service-Engine-X</h2>
             <p className="text-gray-400 text-sm mt-2">
               Add new systems to the platform
+            </p>
+          </div>
+        </Link>
+
+        <Link href="/admin/modal-endpoint-instantiation" className="block">
+          <div className="h-full rounded-xl border border-gray-800 bg-gray-900/50 p-6 cursor-pointer hover:border-gray-700 transition-colors">
+            <div className="flex items-start justify-between mb-6">
+              <div className="p-3 rounded-lg bg-gray-800">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-gray-400"
+                >
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                  <path d="M2 17l10 5 10-5" />
+                  <path d="M2 12l10 5 10-5" />
+                </svg>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-gray-500"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </svg>
+            </div>
+            <h2 className="text-white font-semibold text-lg">Send System for Modal Endpoint Instantiation</h2>
+            <p className="text-gray-400 text-sm mt-2">
+              Select a system to instantiate as a Modal endpoint
             </p>
           </div>
         </Link>
