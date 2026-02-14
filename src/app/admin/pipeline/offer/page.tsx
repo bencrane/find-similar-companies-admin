@@ -46,6 +46,15 @@ const ORG_API_KEYS: Record<string, string | undefined> = {
   "RevenueEngineer.com": process.env.NEXT_PUBLIC_REVENUE_ENGINEER_API_KEY,
 };
 
+// Mock data for testing
+const MOCK_DEALS: Record<string, { company_name: string; company_domain: string; contact_name: string; contact_email: string }> = {
+  "mock-1": { company_name: "NorthStar Digital", company_domain: "northstardigital.com", contact_name: "Amanda Foster", contact_email: "benjaminjcrane+amanda@gmail.com" },
+  "mock-2": { company_name: "Greenfield Partners", company_domain: "greenfieldpartners.com", contact_name: "Sarah Chen", contact_email: "benjaminjcrane+sarah@gmail.com" },
+  "mock-3": { company_name: "Uraiv, LLC", company_domain: "uraiv.com", contact_name: "Max Hirsch", contact_email: "benjaminjcrane+max@gmail.com" },
+  "mock-4": { company_name: "TechStartup Inc", company_domain: "techstartup.com", contact_name: "Mike Chen", contact_email: "benjaminjcrane+mike@gmail.com" },
+  "mock-5": { company_name: "Acme Corporation", company_domain: "acmecorp.com", contact_name: "Sarah Johnson", contact_email: "benjaminjcrane+sarahj@gmail.com" },
+};
+
 function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
@@ -94,6 +103,32 @@ function OfferPageContent() {
     }
 
     const fetchDeal = async () => {
+      // Check if this is a mock deal
+      if (dealId.startsWith("mock-") && MOCK_DEALS[dealId]) {
+        const mockDeal = MOCK_DEALS[dealId];
+        const nameParts = mockDeal.contact_name.split(" ");
+        setDealDetails({
+          deal: {
+            id: dealId,
+            company_name: mockDeal.company_name,
+            company_domain: mockDeal.company_domain,
+            stage: "met",
+            status: "active",
+            value: null,
+            notes: null,
+          },
+          contacts: [{ id: "c1", name: mockDeal.contact_name, email: mockDeal.contact_email }],
+          bookings: [],
+        });
+        setClientEmail(mockDeal.contact_email);
+        setClientNameF(nameParts[0] || "");
+        setClientNameL(nameParts.slice(1).join(" ") || "");
+        setClientCompany(mockDeal.company_name);
+        setSelectedOrg("Revenue Activation");
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         const response = await fetch("https://api.revenueinfra.com/api/pipeline/deal", {
