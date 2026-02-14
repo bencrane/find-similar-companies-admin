@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 interface DealDetails {
@@ -41,7 +41,7 @@ const DEAL_STATUSES = [
   { value: "stale", label: "Stale" },
 ] as const;
 
-export default function MeetingOutcomePage() {
+function MeetingOutcomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dealId = searchParams.get("deal_id");
@@ -453,5 +453,13 @@ export default function MeetingOutcomePage() {
         </form>
       </main>
     </div>
+  );
+}
+
+export default function MeetingOutcomePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center"><p className="text-gray-400">Loading...</p></div>}>
+      <MeetingOutcomeContent />
+    </Suspense>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 interface DealDetails {
@@ -50,7 +50,7 @@ function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
 
-export default function OfferPage() {
+function OfferPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dealId = searchParams.get("deal_id");
@@ -593,5 +593,13 @@ export default function OfferPage() {
         </form>
       </main>
     </div>
+  );
+}
+
+export default function OfferPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center"><p className="text-gray-400">Loading...</p></div>}>
+      <OfferPageContent />
+    </Suspense>
   );
 }
