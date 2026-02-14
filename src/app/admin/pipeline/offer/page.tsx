@@ -34,6 +34,18 @@ interface ProposalItem {
   price: string;
 }
 
+const ORGANIZATIONS = [
+  "Outbound Solutions",
+  "Revenue Activation",
+  "Everything Automation",
+] as const;
+
+const ORG_IDS: Record<string, string> = {
+  "Outbound Solutions": "22222222-2222-2222-2222-222222222222",
+  "Revenue Activation": "11111111-1111-1111-1111-111111111111",
+  "Everything Automation": "82488e2d-9626-4789-9baa-f168e8b1f757",
+};
+
 function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
 }
@@ -50,6 +62,9 @@ export default function OfferPage() {
   const [submitted, setSubmitted] = useState(false);
   const [noProposal, setNoProposal] = useState(false);
 
+  // Organization
+  const [selectedOrg, setSelectedOrg] = useState("");
+
   // Client info (pre-filled from deal)
   const [clientEmail, setClientEmail] = useState("");
   const [clientNameF, setClientNameF] = useState("");
@@ -63,6 +78,13 @@ export default function OfferPage() {
 
   // Notes
   const [notes, setNotes] = useState("");
+
+  // Email fields
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailBody, setEmailBody] = useState("");
+
+  // Response data
+  const [signingUrl, setSigningUrl] = useState("");
 
   useEffect(() => {
     if (!dealId) {
@@ -127,6 +149,7 @@ export default function OfferPage() {
   };
 
   const isFormValid = (): boolean => {
+    if (!selectedOrg) return false;
     if (!clientEmail || !clientNameF || !clientNameL || !clientCompany) return false;
     return items.every((item) => item.name && item.description && item.price && parseFloat(item.price) >= 0);
   };
@@ -140,10 +163,14 @@ export default function OfferPage() {
       setSubmitting(true);
       setError(null);
 
-      const response = await fetch("https://api.revenueinfra.com/api/proposals", {
+      const response = await fetch("https://api.serviceengine.xyz/internal/proposals", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-Internal-Key": "HT82FpAOzg67Ay+qO2v4Zm/0iF9qe2c798V+0E9Exzw=",
+        },
         body: JSON.stringify({
+          org_id: ORG_IDS[selectedOrg],
           account_name: clientCompany,
           contact_name_f: clientNameF,
           contact_name_l: clientNameL,
@@ -153,7 +180,9 @@ export default function OfferPage() {
             description: item.description,
             price: parseFloat(item.price),
           })),
-          notes: notes || undefined,
+          notes: notes || null,
+          email_subject: emailSubject || null,
+          email_body: emailBody || null,
         }),
       });
 
@@ -162,6 +191,10 @@ export default function OfferPage() {
         throw new Error(errorData.detail || `Failed to create proposal: ${response.status}`);
       }
 
+      const responseData = await response.json();
+      if (responseData.signing_url) {
+        setSigningUrl(responseData.signing_url);
+      }
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create proposal");
@@ -198,7 +231,7 @@ export default function OfferPage() {
   if (submitted) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-lg">
           <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -215,8 +248,29 @@ export default function OfferPage() {
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
-          <h2 className="text-white text-xl font-semibold mb-2">Proposal Created</h2>
-          <p className="text-gray-400 mb-6">Returning to pipeline...</p>
+          <h2 className="text-white text-xl font-semibold mb-2">Proposal Sent</h2>
+          <p className="text-gray-400 mb-6">The proposal has been emailed to the contact.</p>
+
+          {signingUrl && (
+            <div className="mb-6 p-4 rounded-lg bg-gray-900 border border-gray-800">
+              <p className="text-gray-400 text-sm mb-2">Signing URL</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={signingUrl}
+                  className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm"
+                />
+                <button
+                  onClick={() => navigator.clipboard.writeText(signingUrl)}
+                  className="px-3 py-2 text-sm font-medium rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors border border-gray-700"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          )}
+
           <button
             onClick={() => router.push("/admin/pipeline")}
             className="px-4 py-2 text-sm font-medium rounded-lg bg-white text-black hover:bg-gray-200 transition-colors"
@@ -287,25 +341,51 @@ export default function OfferPage() {
         <p className="text-gray-400 text-sm">Create a proposal for this deal</p>
       </header>
 
-      <main className="p-8 max-w-5xl mx-auto">
+      <main className="p-8 pb-16 max-w-5xl mx-auto">
+        {/* Organization Select */}
+        <div className="mb-8">
+          <label className="block text-sm text-gray-400 mb-3">
+            Organization
+          </label>
+          <div className="grid grid-cols-3 gap-3">
+            {ORGANIZATIONS.map((org) => (
+              <button
+                key={org}
+                type="button"
+                onClick={() => setSelectedOrg(org)}
+                className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
+                  selectedOrg === org
+                    ? "border-white bg-white text-black"
+                    : "border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600"
+                }`}
+              >
+                {org}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-800 my-8"></div>
+
         {/* No Proposal Option */}
         <button
           onClick={handleNoProposal}
-          className="mb-6 px-4 py-2 text-sm font-medium rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300 transition-colors border border-gray-700"
+          className="mb-8 px-4 py-2 text-sm font-medium rounded-lg bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-300 transition-colors border border-gray-700"
         >
           No Proposal Needed
         </button>
 
         {/* Deal Context */}
         {dealDetails && (
-          <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6 mb-6">
+          <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6 mb-8">
             <h2 className="text-white font-semibold text-lg mb-2">{dealDetails.deal.company_name}</h2>
             <p className="text-gray-400 text-sm">{dealDetails.deal.company_domain}</p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Client Info */}
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Contact Info */}
           <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
             <h3 className="text-white font-medium mb-4">Contact Information</h3>
             <div className="grid grid-cols-2 gap-4">
@@ -463,6 +543,39 @@ export default function OfferPage() {
               rows={3}
               className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-gray-600 transition-colors resize-none"
             />
+          </div>
+
+          {/* Email */}
+          <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
+            <h3 className="text-white font-medium mb-4">Email (optional)</h3>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="emailSubject" className="block text-sm text-gray-400 mb-2">
+                  Subject
+                </label>
+                <input
+                  id="emailSubject"
+                  type="text"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  placeholder="Your proposal from Revenue Activation"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-gray-600 transition-colors"
+                />
+              </div>
+              <div>
+                <label htmlFor="emailBody" className="block text-sm text-gray-400 mb-2">
+                  Body
+                </label>
+                <textarea
+                  id="emailBody"
+                  value={emailBody}
+                  onChange={(e) => setEmailBody(e.target.value)}
+                  placeholder="Hi Anna,&#10;&#10;Thank you for your time. Please find your proposal attached..."
+                  rows={5}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-gray-600 transition-colors resize-none"
+                />
+              </div>
+            </div>
           </div>
 
           {error && <p className="text-red-400 text-sm">{error}</p>}
