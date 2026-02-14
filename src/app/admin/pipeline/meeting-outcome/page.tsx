@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 
 interface DealDetails {
   deal: {
@@ -42,6 +42,7 @@ const NEXT_STEPS = [
 ] as const;
 
 export default function MeetingOutcomePage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const dealId = searchParams.get("deal_id");
 
@@ -163,12 +164,12 @@ export default function MeetingOutcomePage() {
             </svg>
           </div>
           <h2 className="text-white text-xl font-semibold mb-2">Meeting Outcome Submitted</h2>
-          <p className="text-gray-400 mb-6">You can close this tab now.</p>
+          <p className="text-gray-400 mb-6">Returning to pipeline...</p>
           <button
-            onClick={() => window.close()}
+            onClick={() => router.push("/admin/pipeline")}
             className="px-4 py-2 text-sm font-medium rounded-lg bg-white text-black hover:bg-gray-200 transition-colors"
           >
-            Close Tab
+            Back to Pipeline
           </button>
         </div>
       </div>

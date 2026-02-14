@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
 
 interface PipelineRow {
@@ -155,6 +156,7 @@ function getStatusColor(status: string): string {
 }
 
 export default function PipelinePage() {
+  const router = useRouter();
   const [data, setData] = useState<PipelineRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -205,11 +207,11 @@ export default function PipelinePage() {
       : data.filter((row) => getOrganizerDisplay(row.organizer_email) === organizerFilter);
 
   const openMeetingOutcome = (dealId: string) => {
-    window.open(`/admin/pipeline/meeting-outcome?deal_id=${dealId}`, "_blank");
+    router.push(`/admin/pipeline/meeting-outcome?deal_id=${dealId}`);
   };
 
   const openOfferGeneration = (dealId: string) => {
-    window.open(`/admin/pipeline/offer?deal_id=${dealId}`, "_blank");
+    router.push(`/admin/pipeline/offer?deal_id=${dealId}`);
   };
 
   return (
