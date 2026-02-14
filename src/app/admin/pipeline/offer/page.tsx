@@ -35,15 +35,15 @@ interface ProposalItem {
 }
 
 const ORGANIZATIONS = [
-  "Outbound Solutions",
   "Revenue Activation",
-  "Everything Automation",
+  "Outbound Solutions",
+  "RevenueEngineer.com",
 ] as const;
 
-const ORG_IDS: Record<string, string> = {
-  "Outbound Solutions": "22222222-2222-2222-2222-222222222222",
-  "Revenue Activation": "11111111-1111-1111-1111-111111111111",
-  "Everything Automation": "82488e2d-9626-4789-9baa-f168e8b1f757",
+const ORG_API_KEYS: Record<string, string | undefined> = {
+  "Revenue Activation": process.env.NEXT_PUBLIC_REVENUE_ACTIVATION_API_KEY,
+  "Outbound Solutions": process.env.NEXT_PUBLIC_OUTBOUND_SOLUTIONS_API_KEY,
+  "RevenueEngineer.com": process.env.NEXT_PUBLIC_REVENUE_ENGINEER_API_KEY,
 };
 
 function generateId(): string {
@@ -163,14 +163,13 @@ export default function OfferPage() {
       setSubmitting(true);
       setError(null);
 
-      const response = await fetch("https://api.serviceengine.xyz/internal/proposals", {
+      const response = await fetch("https://api.serviceengine.xyz/api/proposals", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Internal-Key": "HT82FpAOzg67Ay+qO2v4Zm/0iF9qe2c798V+0E9Exzw=",
+          "Authorization": `Bearer ${ORG_API_KEYS[selectedOrg]}`,
         },
         body: JSON.stringify({
-          org_id: ORG_IDS[selectedOrg],
           account_name: clientCompany,
           contact_name_f: clientNameF,
           contact_name_l: clientNameL,
