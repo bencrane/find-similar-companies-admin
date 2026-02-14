@@ -34,11 +34,11 @@ const OUTCOMES = [
   { value: "cancelled", label: "Cancelled" },
 ] as const;
 
-const NEXT_STEPS = [
-  { value: "follow_up", label: "Follow Up" },
-  { value: "send_proposal", label: "Send Proposal" },
-  { value: "close_won", label: "Close Won" },
-  { value: "close_lost", label: "Close Lost" },
+const DEAL_STATUSES = [
+  { value: "active", label: "Active" },
+  { value: "won", label: "Won" },
+  { value: "lost", label: "Lost" },
+  { value: "stale", label: "Stale" },
 ] as const;
 
 export default function MeetingOutcomePage() {
@@ -55,7 +55,13 @@ export default function MeetingOutcomePage() {
   // Form state
   const [outcome, setOutcome] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
-  const [nextStep, setNextStep] = useState<string>("");
+  const [dealStatus, setDealStatus] = useState<string>("");
+  const [sendProposal, setSendProposal] = useState<boolean | null>(null);
+  const [sendFollowup, setSendFollowup] = useState<boolean>(false);
+  const [followupSubject, setFollowupSubject] = useState<string>("");
+  const [followupBody, setFollowupBody] = useState<string>("");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   useEffect(() => {
     if (!dealId) {
@@ -82,6 +88,9 @@ export default function MeetingOutcomePage() {
         if (data.deal?.notes) {
           setNotes(data.deal.notes);
         }
+        if (data.deal?.status) {
+          setDealStatus(data.deal.status);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load deal");
       } finally {
@@ -92,10 +101,44 @@ export default function MeetingOutcomePage() {
     fetchDeal();
   }, [dealId]);
 
+  const handleSendFollowup = async () => {
+    if (!dealDetails || !followupSubject || !followupBody) return;
+
+    const contactEmail = dealDetails.contacts[0]?.email;
+    if (!contactEmail) {
+      setError("No contact email available");
+      return;
+    }
+
+    try {
+      setSendingEmail(true);
+      const response = await fetch("https://api.revenueinfra.com/api/pipeline/send-followup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          deal_id: dealId,
+          to_email: contactEmail,
+          subject: followupSubject,
+          body: followupBody,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to send email: ${response.status}`);
+      }
+
+      setEmailSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send email");
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!dealId || !outcome || !nextStep) return;
+    if (!dealId || !outcome || !dealStatus) return;
 
     try {
       setSubmitting(true);
@@ -106,7 +149,8 @@ export default function MeetingOutcomePage() {
           deal_id: dealId,
           outcome,
           notes,
-          next_step: nextStep,
+          deal_status: dealStatus,
+          send_proposal: sendProposal,
         }),
       });
 
@@ -201,7 +245,7 @@ export default function MeetingOutcomePage() {
         <p className="text-gray-400 text-sm">Record the outcome of this meeting</p>
       </header>
 
-      <main className="p-8 max-w-2xl">
+      <main className="p-8 max-w-4xl mx-auto">
         {/* Deal Context */}
         {dealDetails && (
           <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6 mb-6">
@@ -235,72 +279,171 @@ export default function MeetingOutcomePage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Meeting Outcome */}
           <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
-            {/* Outcome */}
-            <div className="mb-6">
-              <label className="block text-sm text-gray-400 mb-3">Meeting Outcome</label>
-              <div className="grid grid-cols-2 gap-3">
-                {OUTCOMES.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setOutcome(opt.value)}
-                    className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
-                      outcome === opt.value
-                        ? "border-white bg-white text-black"
-                        : "border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+            <label className="block text-sm text-gray-400 mb-3">Meeting Outcome</label>
+            <div className="grid grid-cols-2 gap-3">
+              {OUTCOMES.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setOutcome(opt.value)}
+                  className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
+                    outcome === opt.value
+                      ? "border-white bg-white text-black"
+                      : "border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Notes */}
+          <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
+            <label htmlFor="notes" className="block text-sm text-gray-400 mb-2">
+              Notes
+            </label>
+            <textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={4}
+              placeholder="Meeting notes, key takeaways, action items..."
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-gray-600 transition-colors resize-none"
+            />
+          </div>
+
+          {/* Deal Status */}
+          <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
+            <label className="block text-sm text-gray-400 mb-3">Deal Status</label>
+            <div className="grid grid-cols-4 gap-3">
+              {DEAL_STATUSES.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setDealStatus(opt.value)}
+                  className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
+                    dealStatus === opt.value
+                      ? "border-white bg-white text-black"
+                      : "border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Send Proposal */}
+          <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
+            <label className="block text-sm text-gray-400 mb-3">Send Proposal?</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setSendProposal(true)}
+                className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
+                  sendProposal === true
+                    ? "border-white bg-white text-black"
+                    : "border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600"
+                }`}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => setSendProposal(false)}
+                className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
+                  sendProposal === false
+                    ? "border-white bg-white text-black"
+                    : "border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600"
+                }`}
+              >
+                No
+              </button>
+            </div>
+          </div>
+
+          {/* Send Followup */}
+          <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <label className="block text-sm text-gray-400">Send Followup Email</label>
+              <button
+                type="button"
+                onClick={() => setSendFollowup(!sendFollowup)}
+                className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
+                  sendFollowup
+                    ? "border-white bg-white text-black"
+                    : "border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600"
+                }`}
+              >
+                {sendFollowup ? "Enabled" : "Enable"}
+              </button>
             </div>
 
-            {/* Notes */}
-            <div className="mb-6">
-              <label htmlFor="notes" className="block text-sm text-gray-400 mb-2">
-                Notes
-              </label>
-              <textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={4}
-                placeholder="Meeting notes, key takeaways, action items..."
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-gray-600 transition-colors resize-none"
-              />
-            </div>
+            {sendFollowup && (
+              <div className="space-y-4">
+                {dealDetails?.contacts[0]?.email && (
+                  <div className="text-sm">
+                    <span className="text-gray-500">To:</span>{" "}
+                    <span className="text-gray-300">{dealDetails.contacts[0].email}</span>
+                  </div>
+                )}
 
-            {/* Next Step */}
-            <div>
-              <label className="block text-sm text-gray-400 mb-3">Next Step</label>
-              <div className="grid grid-cols-2 gap-3">
-                {NEXT_STEPS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setNextStep(opt.value)}
-                    className={`p-3 rounded-lg border text-sm font-medium transition-colors ${
-                      nextStep === opt.value
-                        ? "border-white bg-white text-black"
-                        : "border-gray-700 bg-gray-800 text-gray-300 hover:border-gray-600"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+                <div>
+                  <label htmlFor="followupSubject" className="block text-sm text-gray-400 mb-2">
+                    Subject
+                  </label>
+                  <input
+                    id="followupSubject"
+                    type="text"
+                    value={followupSubject}
+                    onChange={(e) => setFollowupSubject(e.target.value)}
+                    placeholder="Follow up on our meeting..."
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-gray-600 transition-colors"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="followupBody" className="block text-sm text-gray-400 mb-2">
+                    Message
+                  </label>
+                  <textarea
+                    id="followupBody"
+                    value={followupBody}
+                    onChange={(e) => setFollowupBody(e.target.value)}
+                    rows={6}
+                    placeholder="Hi [Name],&#10;&#10;Thank you for taking the time to meet with us today..."
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-gray-600 transition-colors resize-none"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSendFollowup}
+                  disabled={!followupSubject || !followupBody || sendingEmail || emailSent}
+                  className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    emailSent
+                      ? "bg-green-500/20 text-green-400 border border-green-500/30"
+                      : followupSubject && followupBody && !sendingEmail
+                      ? "bg-blue-600 text-white hover:bg-blue-700"
+                      : "bg-gray-800 text-gray-500 cursor-not-allowed"
+                  }`}
+                >
+                  {emailSent ? "Email Sent" : sendingEmail ? "Sending..." : "Send Email"}
+                </button>
               </div>
-            </div>
+            )}
           </div>
 
           {error && <p className="text-red-400 text-sm">{error}</p>}
 
           <button
             type="submit"
-            disabled={!outcome || !nextStep || submitting}
+            disabled={!outcome || !dealStatus || submitting}
             className={`w-full py-3 rounded-lg font-medium transition-colors ${
-              outcome && nextStep && !submitting
+              outcome && dealStatus && !submitting
                 ? "bg-white text-black hover:bg-gray-200"
                 : "bg-gray-800 text-gray-500 cursor-not-allowed"
             }`}

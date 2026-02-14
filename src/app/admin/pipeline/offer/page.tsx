@@ -144,10 +144,10 @@ export default function OfferPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          client_email: clientEmail,
-          client_name_f: clientNameF,
-          client_name_l: clientNameL,
-          client_company: clientCompany,
+          account_name: clientCompany,
+          contact_name_f: clientNameF,
+          contact_name_l: clientNameL,
+          contact_email: clientEmail,
           items: items.map((item) => ({
             name: item.name,
             description: item.description,
@@ -287,7 +287,7 @@ export default function OfferPage() {
         <p className="text-gray-400 text-sm">Create a proposal for this deal</p>
       </header>
 
-      <main className="p-8 max-w-3xl">
+      <main className="p-8 max-w-5xl mx-auto">
         {/* No Proposal Option */}
         <button
           onClick={handleNoProposal}
@@ -307,7 +307,7 @@ export default function OfferPage() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Client Info */}
           <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-6">
-            <h3 className="text-white font-medium mb-4">Client Information</h3>
+            <h3 className="text-white font-medium mb-4">Contact Information</h3>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="clientNameF" className="block text-sm text-gray-400 mb-2">
